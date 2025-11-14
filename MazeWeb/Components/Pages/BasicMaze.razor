@@ -1,4 +1,6 @@
 @page "/BasicMaze"
+@using Microsoft.VisualBasic
+@using System.Runtime.CompilerServices
 @using labyrinth
 
 <PageTitle>Basic Maze Visualizer</PageTitle>
@@ -9,7 +11,8 @@
 
 @code
 {
-    string userName;
+    List<NodeLink> visited = new List<NodeLink>();
+    string? userName;
 
     void generateMaze()
     {
@@ -19,7 +22,9 @@
         * do NOT edit the value of YourName. Changing YourName will change which
         * maze you get back, which might invalidate all your hard work!
         */
-        string YOUR_NAME = userName;
+        string YOUR_NAME;
+        if (userName != null) { YOUR_NAME = userName; }
+        else { YOUR_NAME = ""; }
 
         /* Change these constants to contain the paths out of your mazes. */
         string PATH_OUT_OF_MAZE = "ESENEWSWNWSSESWENESEN";
@@ -53,5 +58,54 @@
         }
 
 
+    }
+
+    public record NodeLink(MazeCell From, string Direction, MazeCell To)
+    {
+        public string Label => $"{Direction} to {To.Id}";
+
+
+        public List<NodeLink>? Recursion_ExploreMaze(MazeCell? startingCell, ref List<NodeLink> visited)
+        {
+            if (startingCell == null) { return null; }
+            foreach (NodeLink node in visited)
+            {
+                // Once the list of NodeLinks has linked all the nodes in the maze connected to the initial starting cell
+                if (visited.Any(n => n.From == node.To))
+                { return visited; }
+            }
+            MazeCell? nextCell = null;
+            if (ExploreNode(startingCell, ref visited) != null)
+            { nextCell = ExploreNode(startingCell, ref visited); }
+            //Recursion
+            return Recursion_ExploreMaze(nextCell, ref visited);
+        }
+        private MazeCell? ExploreNode(MazeCell start, ref List<NodeLink> nodes)
+        {
+            if (start == null) { return null; }
+            NodeLink? newNode = (
+            start.North != null ?
+            new NodeLink(start, "N", start.North) :
+            start.East != null ?
+            new NodeLink(start, "E", start.East) :
+            start.South != null ?
+            new NodeLink(start, "S", start.South) :
+            start.West != null ?
+            new NodeLink(start, "W", start.West) : null); // return null if no path
+
+            if (newNode != null)
+            {
+                nodes.Add(newNode);
+                return newNode.To;
+            }
+            return null;
+            @*
+
+        make new NodeLink from start going N to start.North
+        if list of visited nodes does not contain new NodeLink
+            add new NodeLink to list of visited nodes
+            call exploreNode passing start.North *@
+
+        }
     }
 }
